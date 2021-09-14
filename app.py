@@ -46,8 +46,8 @@ for s in ["","_FOLLOW"]:
 
     data = [standardize_postion(pos,'ftx') for pos in positions]
     # Binance keys
-    KEY = st.secrets["KEY_BINANCE"]
-    SECRET = st.secrets["SECRET_BINANCE"]
+    KEY = st.secrets["KEY_BINANCE"+s]
+    SECRET = st.secrets["SECRET_BINANCE"+s]
     exchange_binance = ccxt.binance({'apiKey':KEY,'secret':SECRET,'options': {'defaultType': 'future' }})
 
     info = exchange_binance.fetchBalance()
