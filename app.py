@@ -27,8 +27,8 @@ def standardize_postion(dic,exchange_name):
 
 
 
-KEY = st.secrets["FTX_KEY"]
-SECRET = st.secrets["FTX_SECRET"]
+KEY = st.secrets["KEY_FTX"]
+SECRET = st.secrets["SECRET_FTX"]
 
 exchange_ftx = ccxt.ftx({'apiKey':KEY,'secret':SECRET,'headers': {
         'FTX-SUBACCOUNT': 'napbots',
@@ -43,8 +43,8 @@ data = [standardize_postion(pos,'ftx') for pos in positions]
 data_pd = pd.DataFrame(data)
 st.write(data_pd)
 # Binance keys
-KEY = st.secrets["FTX_BINANCE"]
-SECRET = st.secrets["FTX_BINANCE"]
+KEY = st.secrets["KEY_BINANCE"]
+SECRET = st.secrets["SECRET_BINANCE"]
 exchange_binance = ccxt.binance({'apiKey':KEY,'secret':SECRET,'options': {'defaultType': 'future' }})
 
 info = exchange_binance.fetchBalance()
