@@ -25,8 +25,9 @@ def standardize_postion(dic,exchange_name):
                 'exchange':'ftx'
         }
 
+col_list = st.columns(2)
 
-for s in ["","_FOLLOW"]:
+for idx,s in enumerate(["","_FOLLOW"]):
     KEY = st.secrets["KEY_FTX"+s]
     SECRET = st.secrets["SECRET_FTX"+s]
     if s == "_FOLLOW":
@@ -58,4 +59,4 @@ for s in ["","_FOLLOW"]:
 
     data_pd = pd.DataFrame(data)
     print(data_pd)
-    st.write(data_pd)
+    col_list[idx].write(data_pd)
