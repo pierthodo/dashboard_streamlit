@@ -2,6 +2,16 @@ import ccxt
 import pandas as pd
 import streamlit as st
 import json
+from pymongo import MongoClient
+
+client = MongoClient(st.secrets["MONGO_DB"])
+balance = client.Account.balance
+df = pd.DataFrame([b for b in balance.find({"Id":"cryptellite"},{"Balance":1,"Time":1,"_id":0})])
+df["Time"] = df["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
+df = df.set_index("Time")
+print(df)
+st.line_chart(df)
+
 # Ftx keys
 def standardize_postion(dic,exchange_name):
     #print(dic)
@@ -60,3 +70,7 @@ for idx,s in enumerate(["","_FOLLOW"]):
     data_pd = pd.DataFrame(data)
     print(data_pd)
     col_list[idx].write(data_pd)
+
+
+#data  = pd.DataFrame([b for b in balance.find({"Id":"cryptellite"})])
+#st.write(data)
