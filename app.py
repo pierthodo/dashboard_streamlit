@@ -3,74 +3,29 @@ import pandas as pd
 import streamlit as st
 import json
 from pymongo import MongoClient
+import plotly.express as px
 
-client = MongoClient(st.secrets["MONGO_DB"])
+
+from google.cloud import secretmanager
+
+client = secretmanager.SecretManagerServiceClient()
+name = f"projects/trading1/secrets/url-mongodb/versions/latest"
+URL_MONGODB = client.access_secret_version(request={"name": name}).payload.data.decode("UTF-8")
+
+client = MongoClient(URL_MONGODB)
+## Plot value account cryptellite on binance
 balance = client.Account.balance
 df = pd.DataFrame([b for b in balance.find({"Id":"cryptellite"},{"Balance":1,"Time":1,"_id":0})])
 df["Time"] = df["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
-df = df.set_index("Time")
-print(df)
-st.line_chart(df)
 
-# Ftx keys
-def standardize_postion(dic,exchange_name):
-    #print(dic)
-    if exchange_name == 'binance':
-        side = "Buy" if float(dic['positionAmt']) > 0 else "Short"
-        return {'symbol':dic["symbol"],
-                'size':float(dic['positionAmt']),
-                'side':side,
-                'Pnl': float(dic['unrealizedProfit']),
-                'notional': float(dic['notional']),
-                'exchange':"binance"
-        }
-    elif exchange_name == 'ftx':
-        price = exchange_ftx.fetch_ticker(dic["future"])["bid"]
-        notional = float(dic["size"])*price
-        return {'symbol':dic["future"],
-                'size':float(dic['size']),
-                'side':dic['side'],
-                'notional':notional,
-                'Pnl': float(dic['realizedPnl']),
-                'exchange':'ftx'
-        }
+fig = px.line(df, x='Time', y="Balance")
+st.plotly_chart(fig)
 
-col_list = st.columns(2)
+# plot value account running the funding strategy on bybit
 
-for idx,s in enumerate(["","_FOLLOW"]):
-    KEY = st.secrets["KEY_FTX"+s]
-    SECRET = st.secrets["SECRET_FTX"+s]
-    if s == "_FOLLOW":
-        exchange_ftx = ccxt.ftx({'apiKey':KEY,'secret':SECRET,'headers': {
-                'FTX-SUBACCOUNT': 'follownapbots',
-            }
-        })
-    else:
-        exchange_ftx = ccxt.ftx({'apiKey':KEY,'secret':SECRET,'headers': {
-                'FTX-SUBACCOUNT': 'napbots',
-            }
-        })
-    info = exchange_ftx.fetchBalance()
-    balance_value = info['info']['result'][0]['total']
-    print(balance_value)
-    positions = exchange_ftx.fetch_account_positions()
+df = pd.DataFrame([b for b in balance.find({"Id":"bybit_funding"},{"Balance":1,"Time":1,"_id":0})])
+df["Time"] = df["Time"].dt.strftime("%Y-%m-%d %H:%M:%S")
 
-    data = [standardize_postion(pos,'ftx') for pos in positions]
-    # Binance keys
-    KEY = st.secrets["KEY_BINANCE"+s]
-    SECRET = st.secrets["SECRET_BINANCE"+s]
-    exchange_binance = ccxt.binance({'apiKey':KEY,'secret':SECRET,'options': {'defaultType': 'future' }})
+fig = px.line(df, x='Time', y="Balance")
+st.plotly_chart(fig)
 
-    info = exchange_binance.fetchBalance()
-    positions = info['info']['positions']
-    for pos in positions:
-        if float(pos['positionAmt']) != 0:
-            data.append(standardize_postion(pos,'binance'))
-
-    data_pd = pd.DataFrame(data)
-    print(data_pd)
-    col_list[idx].write(data_pd)
-
-
-#data  = pd.DataFrame([b for b in balance.find({"Id":"cryptellite"})])
-#st.write(data)

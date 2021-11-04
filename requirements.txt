@@ -1,4 +1,0 @@
-ccxt
-streamlit
-pandas
-pymongo
